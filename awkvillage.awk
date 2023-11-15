@@ -105,42 +105,50 @@ function HireWorkers(Inp){
   if (length(Inp)<=0) Inp=1
   Workers=Inp
   Cost=Inp*5
-  if (Resources["Food"]<=Cost) return
+  if (Resources["Food"]<=Cost) return "false"
   Resources["Workers"]+=Workers
   Resources["Food"]-=Cost
+  return "true"
 }
 function HireSoldiers(Inp){
   gsub(/[^0-9]/,"",Inp)
   if (length(Inp)<=0) Inp=1
   Soldiers=Inp
   Cost=Inp*10
-  if (Resources["Food"]<=Cost) return
+  if (Resources["Food"]<=Cost) return "false"
   Resources["Soldiers"]+=Soldiers
   Resources["Food"]-=Cost
+  return "true"
 }
 (Resources["Workers"]+Resources["Soldiers"]<=0){
-  print "Everone died! You lose."
-  exit
+  print "Everone died! You lose."; exit
 }
 (Resources["Food"]<=0){
-  print "Everyone starved! You lose."
-  exit
+  print "Everyone starved! You lose."; exit
 }
-(Resources["Fortifications"]>=5 && Resources["Soldiers"]>=15 && Resources["Food"]>=100){
-  print "Your people are safe and well fed. You win!"
-  exit
+(Resources["Fortifications"]>=5 && \
+  Resources["Soldiers"]>=15 && Resources["Food"]>=100){
+  print "Your people are safe and well fed. You win!"; exit
 }
 { tolower($0) }
+/^(([^fwscmo].*)|( *))$/{ PrintStatus(); next }
 /^f/{ Resources["Food"]+=3 }
-/^w[0-9]*/{ HireWorkers($0) }
-/^s[0-9]*/{ HireSoldiers($0) }
-/^c/{ Resources["Soldiers"]--; Resources["Workers"]++ }
-/^m/{ if (Resources["Food"]>100) { Resources["Soldiers"]+=10; Resources["Food"]-=100 }}
+/^w[0-9]*/{ if (HireWorkers($0)!="true") {PrintStatus(); next }}
+/^s[0-9]*/{ if (HireSoldiers($0)!="true") {PrintStatus(); next }}
+/^c/{
+  if (Resources["Soldiers"]<=0){ PrintStatus(); next }
+  Resources["Soldiers"]--
+  Resources["Workers"]++
+}
+/^m/{
+  if (Resources["Food"]<=100){ PrintStatus(); next }
+  Resources["Soldiers"]+=10
+  Resources["Food"]-=100
+}
 /^o/{ 
-  if (Resources["Workers"]>=20){ 
-    Resources["Workers"]-=20; 
-    Resources["Fortifications"]++; 
-  }
+  if (Resources["Workers"]<20){ PrintStatus(); next }
+  Resources["Workers"]-=20
+  Resources["Fortifications"]++
 }
 {
   Event()
