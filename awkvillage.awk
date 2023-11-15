@@ -17,26 +17,17 @@ function Min(X,Y){
   return Y
 }
 function Lion(){
-  if (Resources["Fortifications"]>=1){
-    EventString="Lion attack! But it couldn\'t jump the walls."
-    return
-  }
-  Soldiers=Resources["Soldiers"]
-  Survival=int(rand()*100%20+1)+Soldiers
-  if (Survival>15){
-    EventString="Lion attack! Your soldiers prevent harm."
-    return
-  }
-  EventString="Lion attack! -2 Soldiers."
-  if (Soldiers>=2) Resources["Soldiers"]-=2
-  else if (Soldiers>=1){
-    EventString="Lion attack! -1 Soldier, -2 Workers."
-    Resources["Soldiers"]--
-    Resources["Workers"]-=2
-  }
-  else {
-    EventString="Lion attack! -4 Workers."
-    Resources["Workers"]-=4
+  EventString="Lion attack!"
+  Survival=int(rand()*100%20+1)+Resources["Soldiers"]
+  if (Resources["Fortifications"]>=1)
+    EventString=EventString" But it couldn\'t jump the walls."
+  else if (Resources["Soldiers"]>0 && Survival>15)
+    EventString=EventString" Your soldiers prevent harm."
+  if (EventString~/[^!]$/) return
+  Resources["Soldiers"]-=2
+  if (Resources["Soldiers"]<0){
+    Resources["Workers"]-=(Abs(Resources["Soldiers"])*2)
+    Resources["Soldiers"]=0
   }
 }
 function Raid(){
