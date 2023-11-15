@@ -40,30 +40,29 @@ function Lion(){
   }
 }
 function Raid(){
+  EventString="You were raided!"
+  FortReduced="0"
   if (Resources["Fortifications"]>=1){
     Breach=int(rand()*100%10)
-    if(Breach-Resources["Fortifications"]<=3){
-      EventString="You were raided! But they couldn\'t breach the walls."
-      return
-    }
+    if(Breach-Resources["Fortifications"]<=3)
+      ESPost="But they couldn\'t breach the walls."
     else {
-      EventString="You were raided! They broke down part of the walls."
+      ESPost="They broke down part of the walls."
       Resources["Fortifications"]--
-      return
+      FortReduced="1"
     }
+    EventString=EventString" "ESPost
+    if (FortReduced=="0") return
   }
-  EventString="You were raided!"
   Soldiers=Min(Resources["Soldiers"],\
-    Resources["Soldiers"]-5+int(Resources["Soldiers"]/5))
-  if (Soldiers<0){
+    Resources["Soldiers"]-5+\
+      int(Resources["Soldiers"]/5)+FortReduced*2)
+  if (Soldiers<=0){
+    Resources["Workers"]-=(Abs(Soldiers)*2)
     Resources["Soldiers"]=0
-    Resources["Workers"]-=Abs(Soldiers)*2
+    Resources["Food"]-=(20-Abs(Soldiers)*2)
   }
   else Resources["Soldiers"]=Soldiers
-  if (Resources["Soldiers"]<=0){
-    Resources["Food"]=Min(Resources["Food"],\
-      Resources["Food"]-20+Resources["Soldiers"]*2)
-  }
 }
 function Berries(){
   EventString="Found some berries! +2 Food."
