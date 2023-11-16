@@ -8,14 +8,9 @@ BEGIN{
   Resources["Fortifications"]=0
   EventString="Peaceful night."
 }
-function Abs(Val){
-  if (Val>=0) return Val
-  return (0-Val)
-}
-function Min(X,Y){
-  if (X<=Y) return X
-  return Y
-}
+function Abs(Val){ if (Val>=0) return Val; return 0-Val }
+function Min(X,Y){ if (X<=Y) return X; return Y }
+function Max(X,Y){ if(X>=Y) return X; return Y }
 function Lion(){
   EventString="Lion attack!"
   Survival=int(rand()*100%20+1)+Resources["Soldiers"]
@@ -100,25 +95,14 @@ function PrintStatus(){
   print Stockpile
   printf("%-5s | %-5s | %-5s | %-5s\n","F","W","S","O")
 }
-function HireWorkers(Inp){
-  gsub(/[^0-9]/,"",Inp)
-  if (length(Inp)<=0) Inp=1
-  Workers=Inp
-  Cost=Inp*5
-  if (Resources["Food"]<=Cost) return "false"
-  Resources["Workers"]+=Workers
-  Resources["Food"]-=Cost
-  return "true"
+function GetCount(Val){
+  gsub(/[^0-9]/,"",Val)
+  return Max(1,Val)
 }
-function HireSoldiers(Inp){
-  gsub(/[^0-9]/,"",Inp)
-  if (length(Inp)<=0) Inp=1
-  Soldiers=Inp
-  Cost=Inp*10
-  if (Resources["Food"]<=Cost) return "false"
-  Resources["Soldiers"]+=Soldiers
-  Resources["Food"]-=Cost
-  return "true"
+function Hire(Unit,Count,Price){
+  if (Resources["Food"]<=Count*Price) return 0
+  Resources[Unit]+=Count
+  return (Resources["Food"]-=Count*Price)>0
 }
 (Resources["Workers"]+Resources["Soldiers"]<=0){
   print "Everone died! You lose."; exit
@@ -133,8 +117,12 @@ function HireSoldiers(Inp){
 { tolower($0) }
 /^(([^fwscmo].*)|( *))$/{ PrintStatus(); next }
 /^f/{ Resources["Food"]+=3 }
-/^w[0-9]*/{ if (HireWorkers($0)!="true") {PrintStatus(); next }}
-/^s[0-9]*/{ if (HireSoldiers($0)!="true") {PrintStatus(); next }}
+/^w[0-9]*/{
+  if (!Hire("Workers",GetCount($0),5)){ PrintStatus(); next }
+}
+/^s[0-9]*/{
+  if (!Hire("Soldiers",GetCount($0),10)){ PrintStatus(); next }
+}
 /^c/{
   if (Resources["Soldiers"]<=0){ PrintStatus(); next }
   Resources["Soldiers"]--
