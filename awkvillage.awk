@@ -104,18 +104,28 @@ function Hire(Unit,Count,Price){
   Resources[Unit]+=Count
   return (Resources["Food"]-=Count*Price)>0
 }
+function Score(Msg){
+  print Msg
+  split("Food,Workers,Soldiers,Fortifications",U,",")
+  for (i in U) Resources[U[i]]=Max(0,Resources[U[i]])
+  printf("Score: %d\n",Resources["Food"]+Resources["Workers"]*2+\
+    Resources["Soldiers"]*4+Resources["Fortifications"]*10)
+  exit
+}
 (Resources["Workers"]+Resources["Soldiers"]<=0){
-  print "Everone died! You lose."; exit
+  Score("Everone died! You lose.")
 }
 (Resources["Food"]<=0){
-  print "Everyone starved! You lose."; exit
+  Score("Everyone starved! You lose.")
 }
 (Resources["Fortifications"]>=5 && \
   Resources["Soldiers"]>=15 && Resources["Food"]>=100){
-  print "Your people are safe and well fed. You win!"; exit
+  Resources["Food"]+=100
+  Score("Your people are safe and well fed. You win!")
 }
 { tolower($0) }
-/^(([^fwscmo].*)|( *))$/{ PrintStatus(); next }
+/^(([^fwscmoq].*)|( *))$/{ PrintStatus(); next }
+/^q/{ Score("Coward!") }
 /^f/{ Resources["Food"]+=3 }
 /^w[0-9]*/{
   if (!Hire("Workers",GetCount($0),5)){ PrintStatus(); next }
